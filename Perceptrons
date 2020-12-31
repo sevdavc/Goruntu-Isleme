@@ -46,4 +46,9 @@ değeridir. Epoch değeri weight değerini bulmak için kaç kere döngüde dön
 yaklaştığımızı belirtmek için kullanılan bir değişkendir.
 fit: Epoch ve lr değerlerini kullanarak fonksiyonda döngü içerisinde d değerlerine ulaşabilmek için işlemler yapılmaktadır.
 
-2- Sonucu [ 0. -1. 0.] olarak döndürmüştür. Bu sonuçla çözüme ulaşamıyoruz. """
+2- Sonucu [ 0. -1. 0.] olarak döndürmüştür. Bu sonuçla çözüme ulaşamıyoruz. 
+
+3- X değeri olarak, imzanın satır ve sütun sayısı çarpı 3(RGB değeri) , ardından ise 40 adet imza olduğundan dolayı 40 adet de veri girişi olacaktır. d değeri ise 
+çıktı olarak yeniden 40 adet çıktı vermesi gerekmektedir.
+
+"""
