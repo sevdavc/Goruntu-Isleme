@@ -1,0 +1,49 @@
+import numpy as np
+
+class Perceptron(object):
+
+    def __init__(self, input_size, lr=1, epochs=100):
+        self.W = np.zeros(input_size + 1)
+        # add one for bias
+        self.epochs = epochs
+        self.lr = lr
+
+    def activation_fn(self, x):
+        # return (x >= 0).astype(np.float32)
+        return 1 if x >= 0 else 0
+
+    def predict(self, x):
+        z = self.W.T.dot(x)
+        a = self.activation_fn(z)
+        return a
+
+    def fit(self, X, d):
+        for _ in range(self.epochs):
+            for i in range(d.shape[0]):
+                x = np.insert(X[i], 0, 1)
+                y = self.predict(x)
+                e = d[i] - y
+                self.W = self.W + self.lr * e * x
+
+
+X = np.array([
+    [0, 0],
+    [0, 1],
+    [1, 0],
+    [1, 1]
+])
+d = np.array([0, 1, 1, 0])
+
+perceptron = Perceptron(input_size=2)
+perceptron.fit(X, d)
+print(perceptron.W)
+
+
+""" 1- activation_fn: Girdilerimiz ve weight'leri topladıktan sonra sonucumuz 0'dan büyük ve eşitse 1, değilse 0 döndürüyor.
+predict: Bias değerini giriş vektörüne ekliyoruz. Ardından bulunan z değerini activation_fn fonksiyonuna yolluyoruz.
+__init__: Parametre olarak aldığımız girdi sayısına 1 ekleyerek weight vektörümüzü hazırlıyoruz. 1 eklememizin nedeni ise weight vektörü içindeki bias
+değeridir. Epoch değeri weight değerini bulmak için kaç kere döngüde döndüğümüzü hesaplamak içindir. Lr ise bu döngü esnasında doğru sonuca ne kadar
+yaklaştığımızı belirtmek için kullanılan bir değişkendir.
+fit: Epoch ve lr değerlerini kullanarak fonksiyonda döngü içerisinde d değerlerine ulaşabilmek için işlemler yapılmaktadır.
+
+2- Sonucu [ 0. -1. 0.] olarak döndürmüştür. Bu sonuçla çözüme ulaşamıyoruz. """
