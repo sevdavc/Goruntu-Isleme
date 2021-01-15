@@ -1,0 +1,127 @@
+from sklearn.metrics import classification_report, confusion_matrix
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+import os
+
+def get_all_folders_in_path(path_=r"C:\\Users\\Sevda\\Desktop\\data_signature"): #Bu fonksiyonda data ve target verileri belirleniyor.
+                                                                                #Data'da test dışındaki bütün fotolar yer alırken target'de sadece test verileri
+                                                                                #bulunmaktadır.
+    my_folders=[folder for folder in os.listdir(path_) if os.path.isdir(path_ + '\\'+str(folder))]
+    data=[]
+    target=[]
+    for i in my_folders:
+        path_+='\\' + i
+        my_files = [file for file in os.listdir(path_) if os.path.isfile(path_ + '\\' + str(file))]
+        for j in my_files:
+            if "test" in j:
+                target.append(j)
+                my_files.remove(j)
+        data.append(my_files)
+        path_= r"C:\\Users\\Sevda\\Desktop\\data_signature"
+    return data,target
+
+X, y = get_all_folders_in_path()
+X = X / 255
+
+digits = 40 #40 farklı öğrencinin verisi olduğu için 40 değeri almaktadır.
+examples = y.shape[0]
+
+m = 1200 #40 adet öğrenci ve her öğrencide 30 adet imza olmasından dolayı 30*40=1200 sonucu elde edildi.
+
+m_test = X.shape[0] - m
+y_new = np.zeros(y.shape)
+y_new[np.where(y == 0.0)[0]] = 1
+y = y_new
+
+
+
+y = y.reshape(1, examples)
+
+Y_new = np.eye(digits)[y.astype('int32')]
+Y_new = Y_new.T.reshape(digits, examples)
+
+
+
+X_train, X_test = X[:m].T, X[m:].T
+Y_train, Y_test = y[:m].reshape(1,m), y[m:].reshape(1,m_test)
+
+np.random.seed(138)
+shuffle_index = np.random.permutation(m)
+X_train, y_train = X_train[:,shuffle_index], Y_train[:,shuffle_index]
+
+i = 3
+plt.imshow(X_train[:,i].reshape(200,200), cmap = matplotlib.cm.binary)
+plt.axis("off")
+plt.show()
+print(y_train[:,i])
+
+def compute_multiclass_loss(Y, Y_hat):
+
+    L_sum = np.sum(np.multiply(Y, np.log(Y_hat)))
+    m = Y.shape[1]
+    L = -(1/m) * L_sum
+
+    return L
+
+def sigmoid(z):
+    s = 1 / (1 + np.exp(-z))
+    return s
+
+def compute_loss(Y, Y_hat):
+
+    m = Y.shape[1]
+    L = -(1./m) * ( np.sum( np.multiply(np.log(Y_hat),Y) ) + np.sum( np.multiply(np.log(1-Y_hat),(1-Y)) ) )
+
+    return L
+
+n_x = X_train.shape[0]
+n_h = 64
+learning_rate = 1
+
+W1 = np.random.randn(n_h, n_x)
+b1 = np.zeros((n_h, 1))
+W2 = np.random.randn(digits, n_h)
+b2 = np.zeros((digits, 1))
+
+X = X_train
+Y = Y_train
+
+for i in range(2000):
+
+    Z1 = np.matmul(W1,X) + b1
+    A1 = sigmoid(Z1)
+    Z2 = np.matmul(W2,A1) + b2
+    A2 = np.exp(Z2) / np.sum(np.exp(Z2), axis=0)
+
+    cost = compute_multiclass_loss(Y, A2)
+
+    dZ2 = A2-Y
+    dW2 = (1./m) * np.matmul(dZ2, A1.T)
+    db2 = (1./m) * np.sum(dZ2, axis=1, keepdims=True)
+
+    dA1 = np.matmul(W2.T, dZ2)
+    dZ1 = dA1 * sigmoid(Z1) * (1 - sigmoid(Z1))
+    dW1 = (1./m) * np.matmul(dZ1, X.T)
+    db1 = (1./m) * np.sum(dZ1, axis=1, keepdims=True)
+
+    W2 = W2 - learning_rate * dW2
+    b2 = b2 - learning_rate * db2
+    W1 = W1 - learning_rate * dW1
+    b1 = b1 - learning_rate * db1
+
+    if (i % 100 == 0):
+        print("Epoch", i, "cost: ", cost)
+
+print("Final cost:", cost)
+
+Z1 = np.matmul(W1, X_test) + b1
+A1 = sigmoid(Z1)
+Z2 = np.matmul(W2, A1) + b2
+A2 = np.exp(Z2) / np.sum(np.exp(Z2), axis=0)
+
+predictions = np.argmax(A2, axis=0)
+labels = np.argmax(Y_test, axis=0)
+
+print(confusion_matrix(predictions, labels))
+print(classification_report(predictions, labels))
